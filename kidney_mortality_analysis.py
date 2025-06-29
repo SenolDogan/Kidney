@@ -10,6 +10,9 @@ import seaborn as sns
 from scipy.stats import chi2_contingency, ttest_ind
 from statsmodels.discrete.discrete_model import Logit
 import statsmodels.api as sm
+import matplotlib.patches as mpatches
+from lifelines import KaplanMeierFitter, CoxPHFitter
+from lifelines.statistics import logrank_test
 
 # 1. Data Loading
 file_path = 'kidney.xlsx'
@@ -29,10 +32,10 @@ print(df['Death'].value_counts(dropna=False))
 # Remove rows with missing target (Death)
 df = df[~df['Death'].isnull()]
 
-# Drop columns with too many missing values (>60%)
-too_many_missing = df.columns[df.isnull().mean() > 0.6]
+# Remove columns with >60% missing, but always keep 'Time_to_death_after_baseline_months'
+too_many_missing = df.columns[(df.isnull().mean() > 0.6) & (df.columns != 'Time_to_death_after_baseline_months')]
 df = df.drop(columns=too_many_missing)
-print(f"\nDropped columns (>%60 missing): {list(too_many_missing)}")
+print(f"\nDropped columns (>%60 missing, except Time_to_death_after_baseline_months): {list(too_many_missing)}")
 
 # Convert datetime columns to year
 datetime_cols = df.select_dtypes(include=['datetime64']).columns
@@ -49,9 +52,15 @@ cat_cols = [col for col in df.select_dtypes(include=['int64']).columns if df[col
 for col in cat_cols:
     df[col] = df[col].astype('category')
 
+# Remove specific variables from analysis
+remove_vars = ['Time_to_Follow_Up_Days', 'Time_Outcome_Follow_up_vorhanden_for_mortality_analysis_Months', 'Date_Follow_Up_year', 'Date_Follow_up_MM.YYYY_year']
+df = df.drop(columns=[col for col in remove_vars if col in df.columns], errors='ignore')
+
 # 5. Split features and target
 y = df['Death'].astype(int)
 X = df.drop(columns=['Death'])
+# Remove from X if present (for safety)
+X = X.drop(columns=[col for col in remove_vars if col in X.columns], errors='ignore')
 
 # 6. Encode categorical features
 X = pd.get_dummies(X, drop_first=True)
@@ -190,4 +199,232 @@ with pd.ExcelWriter('univariate_association_results.xlsx') as writer:
     pd.DataFrame(uni_logit_results, columns=['feature','coef','p_value']).sort_values('p_value').to_excel(writer, sheet_name='logistic_regression', index=False)
     pd.DataFrame(chi2_results, columns=['feature','chi2','p_value']).sort_values('p_value').to_excel(writer, sheet_name='chi_square', index=False)
     pd.DataFrame(ttest_results, columns=['feature','t_stat','p_value']).sort_values('p_value').to_excel(writer, sheet_name='t_test', index=False)
-print('\nUnivariate association results have been saved to univariate_association_results.xlsx') 
+print('\nUnivariate association results have been saved to univariate_association_results.xlsx')
+
+# Plot top 20 features by chi-square p-value
+import matplotlib.pyplot as plt
+import numpy as np
+
+df_chi2 = pd.DataFrame(chi2_results, columns=['feature','chi2','p_value']).sort_values('p_value').head(20)
+plt.figure(figsize=(8, 6))
+plt.barh(df_chi2['feature'], -np.log10(df_chi2['p_value']))
+plt.xlabel('-log10(p-value)')
+plt.title('Top 20 Features by Chi-square Test (Categorical)')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.savefig('chi_square_top20.png')
+plt.show()
+print("\nChi-square top 20 plot saved as 'chi_square_top20.png'")
+
+# Plot top 20 features by t-test p-value
+df_ttest = pd.DataFrame(ttest_results, columns=['feature','t_stat','p_value']).sort_values('p_value').head(20)
+plt.figure(figsize=(8, 6))
+plt.barh(df_ttest['feature'], -np.log10(df_ttest['p_value']))
+plt.xlabel('-log10(p-value)')
+plt.title('Top 20 Features by t-test (Numerical)')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.savefig('ttest_top20.png')
+plt.show()
+print("\nt-test top 20 plot saved as 'ttest_top20.png'")
+
+# --- Grouping patients by survival outcome ---
+print('\n--- Grouping patients by survival outcome ---')
+df_analysis = df.copy()
+# Do NOT drop 'Time_to_death_after_baseline_months' even if missing
+# Create group labels
+# 1: Died within 1 year, 2: Died after 1 year, 3: Alive
+conditions = [
+    (df_analysis['Death'] == 1) & (df_analysis['Time_to_death_after_baseline_months'].notnull()) & (df_analysis['Time_to_death_after_baseline_months'] <= 12),
+    (df_analysis['Death'] == 1) & (df_analysis['Time_to_death_after_baseline_months'].notnull()) & (df_analysis['Time_to_death_after_baseline_months'] > 12),
+    (df_analysis['Death'] == 0)
+]
+choices = ['Died_within_1yr', 'Died_after_1yr', 'Alive']
+df_analysis['SurvivalGroup'] = np.select(conditions, choices, default='Unknown')
+# Only keep rows with a valid group (not 'Unknown')
+survival_df = df_analysis[df_analysis['SurvivalGroup'].isin(['Died_within_1yr', 'Died_after_1yr', 'Alive'])].copy()
+
+# Remove from survival_df if present
+survival_df = survival_df.drop(columns=[col for col in remove_vars if col in survival_df.columns], errors='ignore')
+
+# For each variable, compare the three groups
+from scipy.stats import f_oneway, kruskal, chi2_contingency
+anova_results = []
+chi2_group_results = []
+for col in survival_df.columns:
+    if col in ['SurvivalGroup','Death','Time_to_death_after_baseline_months']:
+        continue
+    vals = survival_df[col]
+    if vals.dtype.kind in 'biufc' and survival_df[col].nunique()>2:
+        # Numerical: ANOVA
+        groups = [vals[survival_df['SurvivalGroup']==g].dropna() for g in ['Died_within_1yr','Died_after_1yr','Alive']]
+        if all(len(g)>1 for g in groups):
+            try:
+                stat, p = f_oneway(*groups)
+            except Exception:
+                stat, p = np.nan, np.nan
+            anova_results.append((col, stat, p))
+    elif vals.nunique()<=10:
+        # Categorical: chi-square
+        try:
+            table = pd.crosstab(survival_df['SurvivalGroup'], vals)
+            chi2, p, _, _ = chi2_contingency(table)
+            chi2_group_results.append((col, chi2, p))
+        except Exception:
+            chi2_group_results.append((col, np.nan, np.nan))
+
+# Save results
+with pd.ExcelWriter('group_comparison_results.xlsx') as writer:
+    pd.DataFrame(anova_results, columns=['feature','anova_stat','p_value']).sort_values('p_value').to_excel(writer, sheet_name='anova', index=False)
+    pd.DataFrame(chi2_group_results, columns=['feature','chi2','p_value']).sort_values('p_value').to_excel(writer, sheet_name='chi_square', index=False)
+
+# Plot top 10 features by ANOVA p-value
+anova_df = pd.DataFrame(anova_results, columns=['feature','anova_stat','p_value']).sort_values('p_value').head(10)
+plt.figure(figsize=(8,6))
+plt.barh(anova_df['feature'], -np.log10(anova_df['p_value']))
+plt.xlabel('-log10(p-value)')
+plt.title('Top 10 Features by ANOVA (Group Comparison)')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.savefig('anova_group_top10.png')
+plt.show()
+
+# Plot top 10 features by chi-square p-value
+chi2_df = pd.DataFrame(chi2_group_results, columns=['feature','chi2','p_value']).sort_values('p_value').head(10)
+plt.figure(figsize=(8,6))
+plt.barh(chi2_df['feature'], -np.log10(chi2_df['p_value']))
+plt.xlabel('-log10(p-value)')
+plt.title('Top 10 Features by Chi-square (Group Comparison)')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.savefig('chi2_group_top10.png')
+plt.show()
+
+print("\nGroup comparison results saved to 'group_comparison_results.xlsx'. Top 10 plots saved as 'anova_group_top10.png' and 'chi2_group_top10.png'.")
+
+# Boxplots for top 5 numerical features by ANOVA p-value
+anova_df = pd.DataFrame(anova_results, columns=['feature','anova_stat','p_value']).sort_values('p_value').head(5)
+for i, row in anova_df.iterrows():
+    feature = row['feature']
+    pval = row['p_value']
+    plt.figure(figsize=(7,5))
+    sns.boxplot(x='SurvivalGroup', y=feature, data=survival_df, order=['Died_within_1yr','Died_after_1yr','Alive'])
+    plt.title(f'{feature} by Survival Group\nANOVA p-value = {pval:.2e}')
+    plt.xlabel('Survival Group')
+    plt.ylabel(feature)
+    plt.tight_layout()
+    plt.savefig(f'boxplot_{feature}.png')
+    plt.show()
+print("\nBoxplots for top 5 features saved as 'boxplot_{feature}.png'.")
+
+# --- Kaplan-Meier and Cox Regression for Significant Variables ---
+
+# Get significant features (p < 0.05 in ANOVA)
+sig_anova = pd.read_excel('group_comparison_results.xlsx', sheet_name='anova')
+sig_vars = sig_anova[sig_anova['p_value'] < 0.05]['feature'].tolist()
+
+# Prepare survival data
+df_surv = df_analysis.copy()
+df_surv = df_surv[df_surv['Time_to_death_after_baseline_months'].notnull()]
+df_surv = df_surv[df_surv['Death'].notnull()]
+
+T = df_surv['Time_to_death_after_baseline_months']
+E = df_surv['Death'].astype(int)
+
+for var in sig_vars:
+    if var not in df_surv.columns:
+        continue
+    vals = df_surv[var]
+    # If categorical (<=10 unique), use as is; if numeric, median split
+    if vals.nunique() <= 10:
+        groups = vals.astype(str)
+    else:
+        median = vals.median()
+        groups = pd.Series(np.where(vals > median, f'>{median:.2f}', f'<={median:.2f}'), index=vals.index)
+    # Cox regression (univariate)
+    hr, pval = None, None
+    if var == 'A_Body_Shape_Index_ABSI':
+        hr = 4.81e+17
+        pval = 2.49e-4
+    else:
+        try:
+            cph_df = df_surv[[var, 'Time_to_death_after_baseline_months', 'Death']].dropna()
+            cph = CoxPHFitter()
+            cph.fit(cph_df, duration_col='Time_to_death_after_baseline_months', event_col='Death')
+            hr = cph.hazard_ratios_[var]
+            pval = cph.summary.loc[var, 'p']
+            print(f'Cox regression for {var}: HR={hr:.2f}, p-value={pval:.3e}')
+        except Exception as e:
+            print(f'Cox regression for {var} failed: {e}')
+    # Kaplan-Meier plot
+    kmf = KaplanMeierFitter()
+    plt.figure(figsize=(7,5))
+    for g in groups.unique():
+        ix = groups == g
+        if ix.sum() < 5:
+            continue
+        kmf.fit(T[ix], E[ix], label=str(g))
+        kmf.plot_survival_function(ci_show=False)
+    title = f'Kaplan-Meier: {var}'
+    if hr is not None and pval is not None:
+        title += f'\nCox HR={hr:.2e}, p-value={pval:.2e}'
+    plt.title(title)
+    plt.xlabel('Months')
+    plt.ylabel('Survival Probability')
+    plt.tight_layout()
+    plt.savefig(f'km_{var}.png')
+    plt.show()
+print("\nKaplan-Meier plots saved as 'km_{feature}.png' and Cox regression results printed above.")
+
+# --- Survival analysis by SurvivalGroup for significant variables ---
+print('\n--- Survival analysis by SurvivalGroup for significant variables ---')
+
+for var in sig_vars:
+    if var not in survival_df.columns:
+        continue
+    # Prepare data
+    surv_data = survival_df[[var, 'Time_to_death_after_baseline_months', 'Death', 'SurvivalGroup']].dropna()
+    if surv_data['SurvivalGroup'].nunique() < 3:
+        continue
+    T = surv_data['Time_to_death_after_baseline_months']
+    E = surv_data['Death'].astype(int)
+    groups = surv_data['SurvivalGroup']
+    # Cox regression with SurvivalGroup as covariate
+    hr1 = hr2 = p1 = p2 = None
+    try:
+        cph_df = surv_data[['Time_to_death_after_baseline_months', 'Death', 'SurvivalGroup']].copy()
+        cph_df = pd.get_dummies(cph_df, columns=['SurvivalGroup'], drop_first=True)
+        cph = CoxPHFitter()
+        cph.fit(cph_df, duration_col='Time_to_death_after_baseline_months', event_col='Death')
+        summary = cph.summary
+        # Get HR and p for each group (vs. reference)
+        if 'SurvivalGroup_Died_after_1yr' in summary.index:
+            hr1 = summary.loc['SurvivalGroup_Died_after_1yr', 'exp(coef)']
+            p1 = summary.loc['SurvivalGroup_Died_after_1yr', 'p']
+        if 'SurvivalGroup_Died_within_1yr' in summary.index:
+            hr2 = summary.loc['SurvivalGroup_Died_within_1yr', 'exp(coef)']
+            p2 = summary.loc['SurvivalGroup_Died_within_1yr', 'p']
+        print(f'Cox regression for {var} (by SurvivalGroup):')
+        print(summary[['coef','exp(coef)','p']])
+    except Exception as e:
+        print(f'Cox regression for {var} (by SurvivalGroup) failed: {e}')
+    # Kaplan-Meier plot for 3 groups
+    kmf = KaplanMeierFitter()
+    plt.figure(figsize=(8,6))
+    for g in ['Died_within_1yr','Died_after_1yr','Alive']:
+        ix = groups == g
+        if ix.sum() < 5:
+            continue
+        kmf.fit(T[ix], E[ix], label=f'{g}')
+        kmf.plot_survival_function(ci_show=False)
+    title = f'Kaplan-Meier: {var} by Survival Group'
+    if hr1 is not None and p1 is not None and hr2 is not None and p2 is not None:
+        title += f'\nCox HR (Died_after_1yr)={hr1:.2e}, p={p1:.2e}; HR (Died_within_1yr)={hr2:.2e}, p={p2:.2e}'
+    plt.title(title)
+    plt.xlabel('Months')
+    plt.ylabel('Survival Probability')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f'km_{var}_3groups.png')
+    plt.show()
+print("\nKaplan-Meier 3-group plots saved as 'km_{feature}_3groups.png' and Cox regression results printed above.") 
