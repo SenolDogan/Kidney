@@ -1,0 +1,394 @@
+--- Columns and Data Types ---
+NUMMER                                                                     int64
+SERUMNO                                                                    int64
+Baseline_DATE_study_entry                                         datetime64[ns]
+Datum_Erstdialyse_DD.MM.YYYY                                      datetime64[ns]
+Stadium_CKD_eGFR_Creatinine                                                int64
+Sex_1male_2female                                                          int64
+Diabetes_status_1yes_0no                                                   int64
+Urine_available_1yes_0no                                                   int64
+Bioelectrical_Impedance_Analysis_available_1yes_0no                        int64
+Dialysis_Vintage_at_Baseline_Months                                      float64
+Birth_DATE                                                        datetime64[ns]
+Smoker                                                                     int64
+Urinary_Albumin_Creatinine_ratio_mg_g                                    float64
+eGFR_CKD_EPI_Creatinine_at_Baseline                                      float64
+CKD_yes_no_at_Baseline_Creatinine                                          int64
+Body_Fat_Percentage                                                      float64
+ECM_BCM_INDEX                                                            float64
+AGE_Baseline                                                             float64
+weight_kg                                                                float64
+Height_m                                                                 float64
+BMI                                                                      float64
+WAIST_circumference_cm                                                   float64
+HIP_circumference_cm                                                     float64
+WHR                                                                      float64
+WHtR                                                                     float64
+A_Body_Shape_Index_ABSI                                                  float64
+WWI_Weight_adjusted_Waist_Index                                          float64
+AVI_Abdominal_Volume_Index                                               float64
+BRI_Body_Roundness_Index                                                 float64
+ConI_Conicity_Index                                                      float64
+HI_Hip_Index                                                             float64
+eTBF_estimated_Total_Body_Fat                                            float64
+RFM_Relative_Fat_Mass                                                    float64
+BAI_Body_Adiposity_Index_Percentage                                      float64
+Ponderal_Index_Adults                                                    float64
+Visceral_adiposity_index_VAI                                             float64
+Lipid_accumulation_product_LAP                                           float64
+Follow_up_Data_available_1yes_0no                                          int64
+Date_Follow_up_MM.YYYY                                            datetime64[ns]
+Date_Follow_Up                                                    datetime64[ns]
+Time_to_Follow_Up_Days                                                   float64
+Time_Outcome_Follow_up_vorhanden_for_mortality_analysis_Months           float64
+Time_to_death_after_baseline_months                                      float64
+Death                                                                    float64
+Date_of_Death_DD.MM.YYYY                                          datetime64[ns]
+dtype: object
+
+--- Missing Value Ratios ---
+Dialysis_Vintage_at_Baseline_Months                               0.716007
+Datum_Erstdialyse_DD.MM.YYYY                                      0.672978
+Date_of_Death_DD.MM.YYYY                                          0.659208
+Time_to_death_after_baseline_months                               0.659208
+Urinary_Albumin_Creatinine_ratio_mg_g                             0.340792
+ECM_BCM_INDEX                                                     0.318417
+Body_Fat_Percentage                                               0.318417
+Death                                                             0.127367
+Time_Outcome_Follow_up_vorhanden_for_mortality_analysis_Months    0.127367
+Time_to_Follow_Up_Days                                            0.127367
+Date_Follow_Up                                                    0.127367
+Date_Follow_up_MM.YYYY                                            0.127367
+BAI_Body_Adiposity_Index_Percentage                               0.039587
+HI_Hip_Index                                                      0.039587
+AVI_Abdominal_Volume_Index                                        0.036145
+WHR                                                               0.036145
+HIP_circumference_cm                                              0.036145
+Visceral_adiposity_index_VAI                                      0.027539
+Lipid_accumulation_product_LAP                                    0.024096
+A_Body_Shape_Index_ABSI                                           0.024096
+RFM_Relative_Fat_Mass                                             0.024096
+ConI_Conicity_Index                                               0.024096
+BRI_Body_Roundness_Index                                          0.024096
+WHtR                                                              0.024096
+WWI_Weight_adjusted_Waist_Index                                   0.020654
+eTBF_estimated_Total_Body_Fat                                     0.020654
+WAIST_circumference_cm                                            0.020654
+BMI                                                               0.003442
+Ponderal_Index_Adults                                             0.003442
+Height_m                                                          0.003442
+eGFR_CKD_EPI_Creatinine_at_Baseline                               0.003442
+Stadium_CKD_eGFR_Creatinine                                       0.000000
+Bioelectrical_Impedance_Analysis_available_1yes_0no               0.000000
+Baseline_DATE_study_entry                                         0.000000
+Sex_1male_2female                                                 0.000000
+Diabetes_status_1yes_0no                                          0.000000
+Urine_available_1yes_0no                                          0.000000
+AGE_Baseline                                                      0.000000
+Follow_up_Data_available_1yes_0no                                 0.000000
+Birth_DATE                                                        0.000000
+weight_kg                                                         0.000000
+Smoker                                                            0.000000
+CKD_yes_no_at_Baseline_Creatinine                                 0.000000
+SERUMNO                                                           0.000000
+NUMMER                                                            0.000000
+dtype: float64
+
+--- Numerical Feature Statistics ---
+                                                    count  ...          std
+NUMMER                                              581.0  ...   172.918307
+SERUMNO                                             581.0  ...     503.8222
+Baseline_DATE_study_entry                             581  ...          NaN
+Datum_Erstdialyse_DD.MM.YYYY                          190  ...          NaN
+Stadium_CKD_eGFR_Creatinine                         581.0  ...     1.395103
+Sex_1male_2female                                   581.0  ...     0.493696
+Diabetes_status_1yes_0no                            581.0  ...     0.493407
+Urine_available_1yes_0no                            581.0  ...     0.472617
+Bioelectrical_Impedance_Analysis_available_1yes...  581.0  ...     0.465588
+Dialysis_Vintage_at_Baseline_Months                 165.0  ...    52.175369
+Birth_DATE                                            581  ...          NaN
+Smoker                                              581.0  ...     0.337482
+Urinary_Albumin_Creatinine_ratio_mg_g               383.0  ...   579.376706
+eGFR_CKD_EPI_Creatinine_at_Baseline                 579.0  ...    32.177032
+CKD_yes_no_at_Baseline_Creatinine                   581.0  ...     0.402652
+Body_Fat_Percentage                                 396.0  ...     8.803766
+ECM_BCM_INDEX                                       396.0  ...      4.68648
+AGE_Baseline                                        581.0  ...    14.378297
+weight_kg                                           581.0  ...    17.313585
+Height_m                                            579.0  ...     0.090562
+BMI                                                 579.0  ...     5.202788
+WAIST_circumference_cm                              569.0  ...    14.739765
+HIP_circumference_cm                                560.0  ...    11.742668
+WHR                                                 560.0  ...      0.08546
+WHtR                                                567.0  ...     0.084802
+A_Body_Shape_Index_ABSI                             567.0  ...     0.006977
+WWI_Weight_adjusted_Waist_Index                     569.0  ...     0.988664
+AVI_Abdominal_Volume_Index                          560.0  ...     6.191884
+BRI_Body_Roundness_Index                            567.0  ...     9.866009
+ConI_Conicity_Index                                 567.0  ...     0.114705
+HI_Hip_Index                                        558.0  ...     0.009616
+eTBF_estimated_Total_Body_Fat                       569.0  ...    10.412517
+RFM_Relative_Fat_Mass                               567.0  ...      7.44571
+BAI_Body_Adiposity_Index_Percentage                 558.0  ...     6.336782
+Ponderal_Index_Adults                               579.0  ...     3.200329
+Visceral_adiposity_index_VAI                        565.0  ...   197.366813
+Lipid_accumulation_product_LAP                      567.0  ...    77.613675
+Follow_up_Data_available_1yes_0no                   581.0  ...      0.33367
+Date_Follow_up_MM.YYYY                                507  ...          NaN
+Date_Follow_Up                                        507  ...          NaN
+Time_to_Follow_Up_Days                              507.0  ...  1712.611402
+Time_Outcome_Follow_up_vorhanden_for_mortality_...  507.0  ...    56.254912
+Time_to_death_after_baseline_months                 198.0  ...    44.416351
+Death                                               507.0  ...     0.488352
+Date_of_Death_DD.MM.YYYY                              198  ...          NaN
+
+[45 rows x 8 columns]
+
+--- Death Column Distribution ---
+Death
+0.0    309
+1.0    198
+NaN     74
+Name: count, dtype: int64
+
+Dropped columns (>%60 missing, except Time_to_death_after_baseline_months): ['Datum_Erstdialyse_DD.MM.YYYY', 'Dialysis_Vintage_at_Baseline_Months', 'Date_of_Death_DD.MM.YYYY']
+
+Class distribution after SMOTE: [309 309]
+Train set: (494, 39), Test set: (124, 39)
+
+--- Model Performance (Logistic Regression) ---
+Accuracy: 0.7338709677419355
+Precision: 0.7377049180327869
+Recall: 0.7258064516129032
+F1 Score: 0.7317073170731707
+ROC AUC: 0.7892819979188346
+Confusion Matrix:
+ [[46 16]
+ [17 45]]
+
+Top 10 Most Important Features (by absolute coefficient):
+ECM_BCM_INDEX                          1.506083
+AVI_Abdominal_Volume_Index             1.043446
+WWI_Weight_adjusted_Waist_Index        1.041425
+eGFR_CKD_EPI_Creatinine_at_Baseline    1.019399
+Birth_DATE_year                        0.768030
+BAI_Body_Adiposity_Index_Percentage    0.734448
+HIP_circumference_cm                   0.718110
+eTBF_estimated_Total_Body_Fat          0.695973
+Time_to_death_after_baseline_months    0.640999
+RFM_Relative_Fat_Mass                  0.513891
+dtype: float64
+
+Train score: 0.806, Test score: 0.734
+
+--- ENGLISH SUMMARY OF RESULTS ---
+
+Test set size: (124, 39)
+Accuracy: 0.73
+Precision: 0.74
+Recall: 0.73
+F1 Score: 0.73
+ROC AUC: 0.79
+Confusion Matrix:
+[[46 16]
+ [17 45]]
+
+Top 10 Most Important Features (by absolute coefficient):
+ECM_BCM_INDEX                          1.506083
+AVI_Abdominal_Volume_Index             1.043446
+WWI_Weight_adjusted_Waist_Index        1.041425
+eGFR_CKD_EPI_Creatinine_at_Baseline    1.019399
+Birth_DATE_year                        0.768030
+BAI_Body_Adiposity_Index_Percentage    0.734448
+HIP_circumference_cm                   0.718110
+eTBF_estimated_Total_Body_Fat          0.695973
+Time_to_death_after_baseline_months    0.640999
+RFM_Relative_Fat_Mass                  0.513891
+dtype: float64
+
+Train score: 0.806, Test score: 0.734
+
+Interpretation:
+This model predicts mortality in kidney patients using clinical and demographic features. The most important variables are listed above. The model's accuracy and other metrics are at a good level. Since train and test scores are close, there is no overfitting. The results can help clinicians understand which parameters increase mortality risk.
+
+The ROC curve has been saved as 'roc_curve.png'.
+
+--- Univariate Association Tests with Death ---
+
+Top 10 features by univariate logistic regression p-value:
+eGFR_CKD_EPI_Creatinine_at_Baseline: coef=-0.034, p-value=2.581e-14
+WWI_Weight_adjusted_Waist_Index: coef=0.672, p-value=2.731e-10
+A_Body_Shape_Index_ABSI: coef=95.959, p-value=2.998e-10
+AGE_Baseline: coef=0.048, p-value=5.372e-10
+ConI_Conicity_Index: coef=5.658, p-value=6.362e-10
+Birth_DATE_year: coef=-0.047, p-value=7.209e-10
+WHR: coef=5.968, p-value=6.059e-07
+eTBF_estimated_Total_Body_Fat: coef=0.036, p-value=7.195e-05
+BRI_Body_Roundness_Index: coef=0.037, p-value=1.084e-04
+WHtR: coef=4.341, p-value=1.084e-04
+
+Top 10 features by chi-square test p-value (categorical):
+Stadium_CKD_eGFR_Creatinine_5: chi2=51.16, p-value=8.501e-13
+CKD_yes_no_at_Baseline_Creatinine_1: chi2=22.86, p-value=1.740e-06
+Stadium_CKD_eGFR_Creatinine_2: chi2=17.71, p-value=2.575e-05
+Diabetes_status_1yes_0no_1: chi2=10.93, p-value=9.450e-04
+Stadium_CKD_eGFR_Creatinine_3: chi2=10.88, p-value=9.696e-04
+Sex_1male_2female_2: chi2=3.94, p-value=4.704e-02
+Urine_available_1yes_0no_1: chi2=1.21, p-value=2.713e-01
+Stadium_CKD_eGFR_Creatinine_4: chi2=0.54, p-value=4.610e-01
+Bioelectrical_Impedance_Analysis_available_1yes_0no_1: chi2=0.42, p-value=5.180e-01
+Smoker_1: chi2=0.13, p-value=7.198e-01
+
+Top 10 features by t-test p-value (numerical):
+eGFR_CKD_EPI_Creatinine_at_Baseline: t-stat=8.92, p-value=8.701e-18
+A_Body_Shape_Index_ABSI: t-stat=-6.94, p-value=1.182e-11
+WWI_Weight_adjusted_Waist_Index: t-stat=-6.93, p-value=1.302e-11
+AGE_Baseline: t-stat=-6.77, p-value=3.578e-11
+ConI_Conicity_Index: t-stat=-6.74, p-value=4.383e-11
+WHR: t-stat=-5.28, p-value=1.920e-07
+eTBF_estimated_Total_Body_Fat: t-stat=-4.12, p-value=4.394e-05
+WHtR: t-stat=-3.98, p-value=7.830e-05
+BRI_Body_Roundness_Index: t-stat=-3.98, p-value=7.830e-05
+WAIST_circumference_cm: t-stat=-3.76, p-value=1.930e-04
+
+Univariate association results have been saved to univariate_association_results.xlsx
+
+Chi-square top 20 plot saved as 'chi_square_top20.png'
+
+t-test top 20 plot saved as 'ttest_top20.png'
+
+--- Grouping patients by survival outcome ---
+
+Group comparison results saved to 'group_comparison_results.xlsx'. Top 10 plots saved as 'anova_group_top10.png' and 'chi2_group_top10.png'.
+
+Boxplots for top 5 features saved as 'boxplot_{feature}.png'.
+Cox regression for eGFR_CKD_EPI_Creatinine_at_Baseline: HR=0.97, p-value=2.544e-11
+Cox regression for WWI_Weight_adjusted_Waist_Index: HR=1.58, p-value=8.421e-09
+Cox regression for AGE_Baseline: HR=1.03, p-value=3.378e-06
+Cox regression for Birth_DATE_year: HR=0.97, p-value=3.181e-05
+Cox regression for ConI_Conicity_Index: HR=44.39, p-value=7.861e-08
+Cox regression for WHR: HR=10.82, p-value=9.876e-03
+Cox regression for eTBF_estimated_Total_Body_Fat: HR=1.02, p-value=4.550e-04
+Cox regression for BRI_Body_Roundness_Index: HR=1.01, p-value=1.216e-01
+Cox regression for WHtR: HR=4.24, p-value=1.216e-01
+Cox regression for WAIST_circumference_cm: HR=1.01, p-value=1.890e-01
+Cox regression for AVI_Abdominal_Volume_Index: HR=1.01, p-value=2.439e-01
+Cox regression for Urinary_Albumin_Creatinine_ratio_mg_g: HR=1.00, p-value=4.217e-02
+Cox regression for Lipid_accumulation_product_LAP: HR=1.00, p-value=8.667e-01
+Cox regression for Visceral_adiposity_index_VAI: HR=1.00, p-value=9.526e-01
+
+Kaplan-Meier plots saved as 'km_{feature}.png' and Cox regression results printed above.
+
+--- Survival analysis by SurvivalGroup for significant variables ---
+Cox regression for eGFR_CKD_EPI_Creatinine_at_Baseline (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for A_Body_Shape_Index_ABSI (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for WWI_Weight_adjusted_Waist_Index (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for AGE_Baseline (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for Birth_DATE_year (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for ConI_Conicity_Index (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for WHR (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for eTBF_estimated_Total_Body_Fat (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for BRI_Body_Roundness_Index (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for WHtR (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for WAIST_circumference_cm (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for AVI_Abdominal_Volume_Index (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for Urinary_Albumin_Creatinine_ratio_mg_g (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for Lipid_accumulation_product_LAP (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+Cox regression for Visceral_adiposity_index_VAI (by SurvivalGroup):
+                                    coef     exp(coef)         p
+covariate                                                       
+SurvivalGroup_Died_after_1yr   20.129519  5.522540e+08  0.990816
+SurvivalGroup_Died_within_1yr  48.679073  1.383735e+21  0.999379
+
+Kaplan-Meier 3-group plots saved as 'km_{feature}_3groups.png' and Cox regression results printed above.
+
+--- Random Forest Sonuçları ---
+Accuracy: 0.9758064516129032
+Precision: 1.0
+Recall: 0.9516129032258065
+F1 Score: 0.9752066115702479
+ROC AUC: 0.9981789802289283
+Confusion Matrix:
+ [[62  0]
+ [ 3 59]]
+
+--- XGBoost Sonuçları ---
+Accuracy: 1.0
+Precision: 1.0
+Recall: 1.0
+F1 Score: 1.0
+ROC AUC: 1.0
+Confusion Matrix:
+ [[62  0]
+ [ 0 62]]
+
+Önemli Not: Sex_1male_2female ve AGE_Baseline değişkenleri (one-hot encoding sonrası tüm varyantları) her iki modelde de mutlaka yer aldı. Sonuçlar ve grafikler dosya olarak kaydedildi.
+
+ROC eğrisi: roc_rf_xgb.png
+Random Forest feature importance: rf_feature_importance.png
+XGBoost feature importance: xgb_feature_importance.png
+Karşılaştırmalı tablo: feature_importance_comparison.xlsx
+
+--- Türkçe Sonuç Özeti ---
+Sex (cinsiyet) ve yaş (AGE_Baseline) değişkenleri (ve varsa dummy varyantları) dahil edilerek yapılan Random Forest ve XGBoost modellemelerinde, her iki modelin doğruluk, hassasiyet, geri çağırma, F1 skoru ve ROC AUC değerleri yukarıda verilmiştir.
+
+En önemli değişkenler ve sıralamaları karşılaştırmalı olarak feature_importance_comparison.xlsx dosyasına kaydedildi.
+
+ROC eğrisi ve değişken önem grafikleri de ayrıca kaydedildi.
+

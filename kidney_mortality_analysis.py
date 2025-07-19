@@ -428,3 +428,177 @@ for var in sig_vars:
     plt.savefig(f'km_{var}_3groups.png')
     plt.show()
 print("\nKaplan-Meier 3-group plots saved as 'km_{feature}_3groups.png' and Cox regression results printed above.") 
+
+# --- YENİ ANALİZ: Sex ve Yaş dahil Random Forest ve XGBoost ile Modelleme ve Feature Importance Karşılaştırması ---
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import roc_auc_score, accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_curve
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import matplotlib.patches as mpatches
+from lifelines import KaplanMeierFitter, CoxPHFitter
+from lifelines.statistics import logrank_test
+
+# Sex ve yaş değişkenlerinin one-hot encoding sonrası isimlerini bul
+sex_cols = [col for col in X.columns if 'Sex_1male_2female' in col]
+age_cols = [col for col in X.columns if 'AGE_Baseline' in col]
+essential_features = sex_cols + age_cols
+# Diğer tüm feature'lar da eklensin
+all_features = list(X.columns)
+for feat in essential_features:
+    if feat not in all_features:
+        all_features.append(feat)
+X_rf = X[all_features]
+
+# Random Forest
+rf = RandomForestClassifier(n_estimators=200, random_state=42, class_weight='balanced')
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+y_prob_rf = rf.predict_proba(X_test)[:,1]
+
+# XGBoost
+xgb = XGBClassifier(n_estimators=200, random_state=42, scale_pos_weight=(y_train==0).sum()/(y_train==1).sum(), use_label_encoder=False, eval_metric='logloss')
+xgb.fit(X_train, y_train)
+y_pred_xgb = xgb.predict(X_test)
+y_prob_xgb = xgb.predict_proba(X_test)[:,1]
+
+# Sonuçlar
+print('\n--- Random Forest Sonuçları ---')
+print('Accuracy:', accuracy_score(y_test, y_pred_rf))
+print('Precision:', precision_score(y_test, y_pred_rf))
+print('Recall:', recall_score(y_test, y_pred_rf))
+print('F1 Score:', f1_score(y_test, y_pred_rf))
+print('ROC AUC:', roc_auc_score(y_test, y_prob_rf))
+print('Confusion Matrix:\n', confusion_matrix(y_test, y_pred_rf))
+
+print('\n--- XGBoost Sonuçları ---')
+print('Accuracy:', accuracy_score(y_test, y_pred_xgb))
+print('Precision:', precision_score(y_test, y_pred_xgb))
+print('Recall:', recall_score(y_test, y_pred_xgb))
+print('F1 Score:', f1_score(y_test, y_pred_xgb))
+print('ROC AUC:', roc_auc_score(y_test, y_prob_xgb))
+print('Confusion Matrix:\n', confusion_matrix(y_test, y_pred_xgb))
+
+# ROC Plot
+plt.figure(figsize=(7,5))
+fpr_rf, tpr_rf, _ = roc_curve(y_test, y_prob_rf)
+fpr_xgb, tpr_xgb, _ = roc_curve(y_test, y_prob_xgb)
+plt.plot(fpr_rf, tpr_rf, label=f'Random Forest (AUC={roc_auc_score(y_test, y_prob_rf):.2f})')
+plt.plot(fpr_xgb, tpr_xgb, label=f'XGBoost (AUC={roc_auc_score(y_test, y_prob_xgb):.2f})')
+plt.plot([0,1],[0,1],'k--')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Eğrisi: Random Forest vs XGBoost')
+plt.legend()
+plt.tight_layout()
+plt.savefig('roc_rf_xgb.png')
+plt.show()
+
+# Feature Importance Karşılaştırması
+rf_importances = pd.Series(rf.feature_importances_, index=X_rf.columns).sort_values(ascending=False)
+xgb_importances = pd.Series(xgb.feature_importances_, index=X_rf.columns).sort_values(ascending=False)
+
+plt.figure(figsize=(10,6))
+rf_plot_data = rf_importances.head(15)[::-1]
+ax = rf_plot_data.plot(kind='barh', color='royalblue', alpha=0.7, label='Random Forest')
+plt.title('Random Forest Feature Importance', fontsize=16)
+plt.xlabel('Importance Score', fontsize=12)
+plt.ylabel('Feature', fontsize=12)
+for i, v in enumerate(rf_plot_data.values):
+    ax.text(v + 0.001, i, f'{v:.3f}', va='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('rf_feature_importance.png')
+plt.close()
+
+plt.figure(figsize=(12, max(6, 0.4*len(xgb_importances.head(30)))))
+plot_data = xgb_importances.head(30)[::-1] if len(xgb_importances) > 30 else xgb_importances[::-1]
+ax = plot_data.plot(kind='barh', color='darkorange', alpha=0.7, label='XGBoost')
+plt.title('XGBoost Feature Importance', fontsize=16)
+plt.xlabel('Importance Score', fontsize=12)
+plt.ylabel('Feature', fontsize=12)
+for i, v in enumerate(plot_data.values):
+    ax.text(v + 0.001, i, f'{v:.3f}', va='center', fontsize=10)
+plt.tight_layout()
+plt.savefig('xgb_feature_importance.png')
+plt.close()
+
+# Karşılaştırmalı tablo
+importance_compare = pd.DataFrame({
+    'RandomForest': rf_importances,
+    'XGBoost': xgb_importances
+})
+importance_compare['RandomForest_rank'] = importance_compare['RandomForest'].rank(ascending=False)
+importance_compare['XGBoost_rank'] = importance_compare['XGBoost'].rank(ascending=False)
+importance_compare = importance_compare.sort_values('RandomForest_rank')
+importance_compare.head(20).to_excel('feature_importance_comparison.xlsx')
+
+print('\nÖnemli Not: Sex_1male_2female ve AGE_Baseline değişkenleri (one-hot encoding sonrası tüm varyantları) her iki modelde de mutlaka yer aldı. Sonuçlar ve grafikler dosya olarak kaydedildi.\n')
+print('ROC eğrisi: roc_rf_xgb.png\nRandom Forest feature importance: rf_feature_importance.png\nXGBoost feature importance: xgb_feature_importance.png\nKarşılaştırmalı tablo: feature_importance_comparison.xlsx')
+
+print('\n--- Türkçe Sonuç Özeti ---')
+print('Sex (cinsiyet) ve yaş (AGE_Baseline) değişkenleri (ve varsa dummy varyantları) dahil edilerek yapılan Random Forest ve XGBoost modellemelerinde, her iki modelin doğruluk, hassasiyet, geri çağırma, F1 skoru ve ROC AUC değerleri yukarıda verilmiştir.\n')
+print('En önemli değişkenler ve sıralamaları karşılaştırmalı olarak feature_importance_comparison.xlsx dosyasına kaydedildi.\n')
+print('ROC eğrisi ve değişken önem grafikleri de ayrıca kaydedildi.\n') 
+
+# --- Yalnızca Died_within_1yr ve Died_after_1yr için Tüm Önemli Değişkenlerde Kaplan-Meier ve Cox ---
+for var in sig_vars:
+    if var not in survival_df.columns:
+        continue
+    surv_data = survival_df[survival_df['SurvivalGroup'].isin(['Died_within_1yr','Died_after_1yr'])][[var, 'Time_to_death_after_baseline_months', 'Death', 'SurvivalGroup']].dropna()
+    if surv_data['SurvivalGroup'].nunique() < 2:
+        continue
+    T = surv_data['Time_to_death_after_baseline_months']
+    E = surv_data['Death'].astype(int)
+    groups = surv_data['SurvivalGroup']
+    # Cox regression (Died_after_1yr referans, Died_within_1yr dummy)
+    cph_df = surv_data[[var, 'Time_to_death_after_baseline_months', 'Death', 'SurvivalGroup']].copy()
+    cph_df = pd.get_dummies(cph_df, columns=['SurvivalGroup'], drop_first=True)
+    cph = CoxPHFitter()
+    try:
+        cph.fit(cph_df, duration_col='Time_to_death_after_baseline_months', event_col='Death')
+        summary = cph.summary
+        hr = summary.loc[summary.index.str.contains('SurvivalGroup_Died_within_1yr'), 'exp(coef)'].values[0]
+        pval = summary.loc[summary.index.str.contains('SurvivalGroup_Died_within_1yr'), 'p'].values[0]
+    except Exception as e:
+        hr, pval = np.nan, np.nan
+    # Kaplan-Meier plot
+    kmf = KaplanMeierFitter()
+    plt.figure(figsize=(8,6))
+    for g in ['Died_within_1yr','Died_after_1yr']:
+        ix = groups == g
+        if ix.sum() < 5:
+            continue
+        kmf.fit(T[ix], E[ix], label=f'{g}')
+        kmf.plot_survival_function(ci_show=False)
+    title = f'Kaplan-Meier: {var} (2 groups)\nCox HR (Died_within_1yr)={hr:.2e}, p={pval:.2e}'
+    plt.title(title)
+    plt.xlabel('Months')
+    plt.ylabel('Survival Probability')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f'km_{var}_2groups.png')
+    plt.close() 
+
+# --- 2 gruplu Cox HR ve p-value değerlerini tabloya kaydet ---
+cox_2groups_results = []
+for var in sig_vars:
+    if var not in survival_df.columns:
+        continue
+    surv_data = survival_df[survival_df['SurvivalGroup'].isin(['Died_within_1yr','Died_after_1yr'])][[var, 'Time_to_death_after_baseline_months', 'Death', 'SurvivalGroup']].dropna()
+    if surv_data['SurvivalGroup'].nunique() < 2:
+        continue
+    cph_df = surv_data[[var, 'Time_to_death_after_baseline_months', 'Death', 'SurvivalGroup']].copy()
+    cph_df = pd.get_dummies(cph_df, columns=['SurvivalGroup'], drop_first=True)
+    cph = CoxPHFitter()
+    try:
+        cph.fit(cph_df, duration_col='Time_to_death_after_baseline_months', event_col='Death')
+        summary = cph.summary
+        hr = summary.loc[summary.index.str.contains('SurvivalGroup_Died_within_1yr'), 'exp(coef)'].values[0]
+        pval = summary.loc[summary.index.str.contains('SurvivalGroup_Died_within_1yr'), 'p'].values[0]
+    except Exception as e:
+        hr, pval = np.nan, np.nan
+    cox_2groups_results.append({'feature': var, 'HR_Died_within_1yr_vs_after_1yr': hr, 'p_value': pval})
+
+pd.DataFrame(cox_2groups_results).to_excel('cox_2groups_results.xlsx', index=False) 
